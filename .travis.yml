@@ -8,6 +8,6 @@ install:
 - poetry install -v
 - pip install tox-travis
 script:
-- tox
+- rm pip-wheel-metadata/ynab_import-* -rf && tox
 after_success:
   - codecov
