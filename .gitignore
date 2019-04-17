@@ -1,0 +1,6 @@
+/.mypy_cache/
+/.tox/
+/__pycache__/
+/dist/
+/pip-wheel-metadata/
+/ynab_import.egg-info/
