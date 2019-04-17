@@ -1,0 +1,1 @@
+ag -l | entr -s 'rm pip-wheel-metadata/ynab_import-* -rf && tox'
