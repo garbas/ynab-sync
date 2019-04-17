@@ -1,0 +1,11 @@
+[flake8]
+max-line-length = 88
+exclude=build/,dist/,pip-wheel-metadata/,.tox/,.mypy_cache/.pytest_cache/
+
+# flake8-coding
+accept-encodings = utf-8
+
+# flake8-quotes
+inline-quotes = "
+multiline-quotes = """
+docstring-quotes = """

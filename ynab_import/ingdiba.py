@@ -1,7 +1,10 @@
-import click
+# -*- coding: utf-8 -*-
+
 import csv
 import decimal
 import io
+
+import click
 
 
 class CSVDialect(csv.Dialect):

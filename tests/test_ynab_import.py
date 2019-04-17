@@ -1,5 +1,7 @@
-from ynab_import import __version__
+# -*- coding: utf-8 -*-
 
 
 def test_version():
-    assert __version__ == "0.1.0"
+    import ynab_import
+
+    assert ynab_import.__version__ == "0.1.0"

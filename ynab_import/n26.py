@@ -1,12 +1,15 @@
-import click
+# -*- coding: utf-8 -*-
+
 import datetime
 import itertools
 import json
 import math
-import mypy_extensions
-import requests
 import time
 import typing
+
+import click
+import mypy_extensions
+import requests
 import typing_extensions
 
 
