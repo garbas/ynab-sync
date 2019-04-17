@@ -15,7 +15,7 @@ click = "^7.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.4"
-black = {version = "^18.3-alpha.0",allows-prereleases = true}
+black = {version = "^19.3b0",allows-prereleases = true}
 flake8 = {version = "^3.7",allows-prereleases = true}
 pdbpp = "^0.9.15"
 mypy = "^0.700.0"
