@@ -297,16 +297,17 @@ description = "pytest: simple powerful testing with Python"
 name = "pytest"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "4.4.2"
+version = "4.5.0"
 
 [package.dependencies]
 atomicwrites = ">=1.0"
 attrs = ">=17.4.0"
 colorama = "*"
-pluggy = ">=0.11"
+pluggy = ">=0.9,<0.10 || >0.10,<1.0"
 py = ">=1.5.0"
 setuptools = "*"
 six = ">=1.10.0"
+wcwidth = "*"
 
 [package.dependencies.more-itertools]
 python = ">=2.8"
@@ -424,6 +425,14 @@ version = "16.4.3"
 
 [[package]]
 category = "dev"
+description = "Measures number of Terminal column cells of wide-character codes"
+name = "wcwidth"
+optional = false
+python-versions = "*"
+version = "0.1.7"
+
+[[package]]
+category = "dev"
 description = "A tool to programmatically control windows inside X"
 name = "wmctrl"
 optional = false
@@ -431,7 +440,7 @@ python-versions = "*"
 version = "0.3"
 
 [metadata]
-content-hash = "583d99f78a798e814a4f89449305506afbe693fb4297459e4676facf4ed45177"
+content-hash = "7c443179c196516a670ea0736b9555241bc95d4142533ca7af9cbd01c884c42e"
 python-versions = "^3.7"
 
 [metadata.hashes]
@@ -466,7 +475,7 @@ pycodestyle = ["95a2219d12372f05704562a14ec30bc76b05a5b297b21a5dfe3f6fac3491ae56
 pyflakes = ["17dbeb2e3f4d772725c777fabc446d5634d1038f234e77343108ce445ea69ce0", "d976835886f8c5b31d47970ed689944a0262b5f3afa00a5a7b4dc81e5449f8a2"]
 pygments = ["5ffada19f6203563680669ee7f53b64dabbeb100eb51b61996085e99c03b284a", "e8218dd399a61674745138520d0d4cf2621d7e032439341bc3f647bff125818d"]
 pyrepl = ["292570f34b5502e871bbb966d639474f2b57fbfcd3373c2d6a2f3d56e681a775"]
-pytest = ["136632a40451162cdfc18fe4d7ecc5d169b558a3d4bbb1603d4005308a42fd03", "62b129bf8368554ca7a942cbdb57ea26aafef46cc65bc317cdac3967e54483a3"]
+pytest = ["1a8aa4fa958f8f451ac5441f3ac130d9fc86ea38780dd2715e6d5c5882700b24", "b8bf138592384bd4e87338cb0f256bf5f615398a649d4bd83915f0e4047a5ca6"]
 pytest-cov = ["0ab664b25c6aa9716cbf203b17ddb301932383046082c081b9848a0edf5add33", "230ef817450ab0699c6cc3c9c8f7a829c34674456f2ed8df1fe1d39780f7c87f"]
 requests = ["502a824f31acdacb3a35b6690b5fbf0bc41d63a24a45c4004352b0242707598e", "7bf2a778576d825600030a110f3c0e3e8edc51dfaafe1c146e39a2027784957b"]
 six = ["3350809f0555b11f552448330d0b52d5f24c91a322ea4a15ef22629740f3761c", "d16a0141ec1a18405cd4ce8b4613101da75da0e9a7aec5bdd4fa804d0e0eba73"]
@@ -478,4 +487,5 @@ typing = ["4027c5f6127a6267a435201981ba156de91ad0d1d98e9ddc2aa173453453492d", "5
 typing-extensions = ["07b2c978670896022a43c4b915df8958bec4a6b84add7f2c87b2b728bda3ba64", "f3f0e67e1d42de47b5c67c32c9b26641642e9170fe7e292991793705cd5fef7c", "fb2cd053238d33a8ec939190f30cfd736c00653a85a2919415cecf7dc3d9da71"]
 urllib3 = ["4c291ca23bbb55c76518905869ef34bdd5f0e46af7afe6861e8375643ffee1a0", "9a247273df709c4fedb38c711e44292304f73f39ab01beda9f6b9fc375669ac3"]
 virtualenv = ["6aebaf4dd2568a0094225ebbca987859e369e3e5c22dc7d52e5406d504890417", "984d7e607b0a5d1329425dd8845bd971b957424b5ba664729fab51ab8c11bc39"]
+wcwidth = ["3df37372226d6e63e1b1e1eda15c594bca98a22d33a23832a90998faa96bc65e", "f4ebe71925af7b40a864553f761ed559b43544f8f71746c2d756c7fe788ade7c"]
 wmctrl = ["d806f65ac1554366b6e31d29d7be2e8893996c0acbb2824bbf2b1f49cf628a13"]
