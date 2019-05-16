@@ -20,7 +20,7 @@ flake8 = {version = "^3.7",allows-prereleases = true}
 pdbpp = "^0.10.0"
 mypy = "^0.701"
 typing_extensions = "^3.7"
-tox = "^3.9"
+tox = "^3.11"
 codecov = "^2.0"
 pytest-cov = "^2.6"
 flake8-coding = "^1.3"
