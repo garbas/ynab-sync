@@ -10,7 +10,7 @@ authors = ["Rok Garbas <rok@garbas.si>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-requests = "^2.21"
+requests = "^2.22"
 click = "^7.0"
 
 [tool.poetry.dev-dependencies]
