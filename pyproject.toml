@@ -18,7 +18,7 @@ pytest = "^4.6"
 black = {version = "^19.3b0",allows-prereleases = true}
 flake8 = {version = "^3.7",allows-prereleases = true}
 pdbpp = "^0.10.0"
-mypy = "^0.710"
+mypy = "^0.711"
 typing_extensions = "^3.7"
 tox = "^3.12"
 codecov = "^2.0"
