@@ -1,16 +1,36 @@
+use crate::convert_to_int;
 use crate::{ErrorKind, Result};
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Duration, Utc};
 use failure::ResultExt;
+use log::info;
 use oauth2::{AuthType, Config, Token};
 use reqwest::header;
-use serde::de::{self, Deserializer, Visitor};
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::fmt;
-use std::result;
+use structopt::StructOpt;
 
 const API_URL: &str = "https://api.tech26.de";
+
+#[derive(StructOpt, Debug)]
+pub struct Cli {
+    #[structopt(
+        long = "n26-username",
+        required = true,
+        value_name = "TEXT",
+        env = "N26_USERNAME",
+        help = "Username that you use to login to https://app.n26.com"
+    )]
+    pub username: String,
+    #[structopt(
+        long = "n26-password",
+        required = true,
+        value_name = "TEXT",
+        env = "N26_PASSWORD",
+        help = "Password that you use to login to https://app.n26.com"
+    )]
+    pub password: String,
+}
 
 #[derive(Debug)]
 pub struct N26 {
@@ -33,7 +53,7 @@ pub struct Transaction {
     #[serde(rename = "type")]
     pub type_: String, // XXX: enum
 
-    #[serde(deserialize_with = "convert_to_cents")]
+    #[serde(deserialize_with = "convert_to_int")]
     pub amount: i32,
 
     #[serde(rename = "currencyCode")]
@@ -41,7 +61,7 @@ pub struct Transaction {
 
     // TODO: Doesn't work with Option
     //
-    // #[serde(rename = "originalAmount", deserialize_with = "convert_to_cents")]
+    // #[serde(rename = "originalAmount", deserialize_with = "convert_to_int")]
     // pub original_amount: Option<i32>,
     //
     //#[serde(rename = "originalCurrency")]
@@ -122,28 +142,6 @@ pub struct Transaction {
     pub confirmed: DateTime<Utc>,
 }
 
-fn convert_to_cents<'de, D>(deserializer: D) -> result::Result<i32, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    struct I32Visitor;
-
-    impl<'de> Visitor<'de> for I32Visitor {
-        type Value = i32;
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("a cent representation in i32 of an amount provided in f32")
-        }
-        fn visit_f64<E>(self, value: f64) -> result::Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(((value * 100.0).round()) as Self::Value)
-        }
-    }
-
-    deserializer.deserialize_f64(I32Visitor)
-}
-
 impl N26 {
     pub fn new(username: String, password: String) -> Result<Self> {
         let authorize_url = format!("{}/noop", API_URL);
@@ -171,6 +169,7 @@ impl N26 {
             .context(ErrorKind::N26GetCategories)?;
 
         let body = res.text().context(ErrorKind::N26GetCategories)?;
+        info!("{}", body);
 
         if !res.status().is_success() {
             let http_error = ErrorKind::N26GetCategoriesHttp(res.status().as_u16(), body.clone());
@@ -190,10 +189,10 @@ impl N26 {
 
     pub fn get_transactions(self: &Self, days: i64, limit: i64) -> Result<Vec<Transaction>> {
         let now = Utc::now();
-        let a_month_ago = now - Duration::days(days);
+        let days_ago = now - Duration::days(days);
 
         // `from` and `to` have to be used together.
-        let from = a_month_ago.timestamp_millis();
+        let from = days_ago.timestamp_millis();
         let to = now.timestamp_millis();
         let url = format!(
             "{}/api/smrt/transactions?from={}&to={}&limit={}",
@@ -209,6 +208,7 @@ impl N26 {
             .context(ErrorKind::N26GetTransactions)?;
 
         let body = res.text().context(ErrorKind::N26GetTransactions)?;
+        info!("{}", body);
 
         if !res.status().is_success() {
             let http_error = ErrorKind::N26GetTransactionsHttp(res.status().as_u16(), body.clone());

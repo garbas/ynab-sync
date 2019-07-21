@@ -1,5 +1,0 @@
-{
-  "rust-client.rlsPath": "rls",
-  "rust-client.disableRustup": true,
-  "rust-client.updateOnStartup": false
-}

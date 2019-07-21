@@ -1,0 +1,32 @@
+[
+  {
+    "rule": "Contains",
+    "value": "uber",
+    "field": "entity",
+    "category": "Transportation"
+  },
+  {
+    "rule": "Contains",
+    "value": "telefonica",
+    "field": "entity",
+    "category": "Internet"
+  },
+  {
+    "rule": "Contains",
+    "value": "rewe",
+    "field": "memo",
+    "category": "Groceries"
+  },
+  {
+    "rule": "Contains",
+    "value": "lidl",
+    "field": "memo",
+    "category": "Groceries"
+  },
+  {
+    "rule": "Contains",
+    "value": "aldi",
+    "field": "memo",
+    "category": "Groceries"
+  }
+]

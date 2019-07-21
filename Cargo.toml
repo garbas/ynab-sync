@@ -10,7 +10,7 @@ readme = "README.md"
 description = "Sync transactions to your YNAB account"
 
 [dependencies]
-chrono = { version = "*", features = ["serde"] }
+chrono = { version = "0.4.7", features = ["serde"] }
 clap = "*"
 failure = "*"
 oauth2 = "*"
@@ -18,3 +18,14 @@ reqwest = "*"
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
 serde_str = "*"
+dialoguer = "0.4.0"
+console = "0.7.7"
+clap-verbosity-flag = "0.2.0"
+log = "0.4.7"
+structopt = "0.2.18"
+exitfailure = "0.5.1"
+clap-log-flag = "0.2.1"
+csv = "1.1.1"
+encoding_rs = "0.8.17"
+encoding_rs_io = "0.1.6"
+rust-crypto = "0.2.36"

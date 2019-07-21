@@ -1,160 +1,131 @@
-#[macro_use]
-extern crate clap;
-extern crate ynab_sync;
-
-use clap::{App, Arg};
+use clap_log_flag::Log;
+use clap_verbosity_flag::Verbosity;
 use failure::ResultExt;
 use serde_json;
-use std::collections::HashMap;
 use std::fs::read_to_string;
-use ynab_sync::n26::Transaction as N26Transaction;
-use ynab_sync::ynab::{Transaction as YNABTransaction, TransactionCleared};
+use std::path::PathBuf;
+use structopt::StructOpt;
+use ynab_sync::n26::{Cli as N26Cli, Transaction as N26Transaction};
+use ynab_sync::ynab::{Cli as YNABCli, Transaction as YNABTransaction, TransactionCleared};
 use ynab_sync::{ErrorKind, Result, N26, YNAB};
-use std::iter::FromIterator;
 
-// TODO: switch to structopt
-// TODO: provide nicer output using ascii_term, use console crate to prirnt colored output
-// TODO: review error handling and use failure and exitfailure, understand current error module
-// TODO: use progress bar when making http calls (https://mattgathu.github.io/writing-cli-app-rust/)
+#[derive(StructOpt, Debug)]
+struct Cli {
+    #[structopt(flatten)]
+    verbose: Verbosity,
+    #[structopt(flatten)]
+    log: Log,
+    #[structopt(flatten)]
+    ynab: YNABCli,
+    #[structopt(flatten)]
+    n26: N26Cli,
+    #[structopt(
+        long = "category-mapping",
+        required = true,
+        value_name = "FILE",
+        help = "JSON file which represents the mapping between N26 and YNAB category."
+    )]
+    category_mapping_file: String,
+    #[structopt(
+        long = "days-to-sync",
+        required = true,
+        value_name = "INT",
+        help = "Number of the past days that you want to sync from."
+    )]
+    days_to_sync: i32,
+}
+
 fn main() -> Result<()> {
-    let app = App::new(crate_name!())
-        .about(crate_description!())
-        .version(crate_version!())
-        .arg(
-            Arg::with_name("ynab_token")
-                .long("ynab-token")
-                .value_name("TEXT")
-                .env("YNAB_TOKEN")
-                .required(true),
-        )
-        .arg(
-            Arg::with_name("ynab_account_id")
-                .required(true)
-                .long("ynab-account-id")
-                .value_name("TEXT")
-                .env("YNAB_ACCOUNT_ID"),
-        )
-        .arg(
-            Arg::with_name("ynab_budget_id")
-                .required(true)
-                .long("ynab-budget-id")
-                .value_name("TEXT")
-                .env("YNAB_BUDGET_ID"),
-        )
-        .arg(
-            Arg::with_name("n26_username")
-                .required(true)
-                .long("n26-username")
-                .value_name("TEXT")
-                .env("N26_USERNAME"),
-        )
-        .arg(
-            Arg::with_name("n26_password")
-                .required(true)
-                .long("n26-password")
-                .value_name("TEXT")
-                .env("N26_PASSWORD"),
-        )
-        .arg(
-            Arg::with_name("category_mapping_file")
-                .required(true)
-                .long("category-mapping")
-                .value_name("FILE"),
-        )
-        .arg(
-            Arg::with_name("days_to_sync")
-                .required(true)
-                .long("days-to-sync")
-                .value_name("INT"),
-        )
-        .get_matches();
+    let cli = Cli::from_args();
+    cli.log.log_all(Some(cli.verbose.log_level()))?;
 
-    // Validate that days_to_sync is correct
-    let days_to_sync_as_str = app.value_of("days_to_sync").unwrap_or("30");
-    let days_to_sync = match days_to_sync_as_str.parse::<i64>() {
-        Ok(d) => d,
-        Err(e) => Err(ErrorKind::ArgParseDaysToSync(
-            days_to_sync_as_str.to_string(),
-            e.to_string(),
-        ))?,
-    };
-
-    // Calling .unwrap() is safe here because an argument should be required.
-    let get_required_arg = |arg_name| app.value_of(arg_name).unwrap().to_string();
-    let n26_username = get_required_arg("n26_username");
-    let n26_password = get_required_arg("n26_password");
-    let ynab_token = get_required_arg("ynab_token");
-    let ynab_budget_id = get_required_arg("ynab_budget_id");
-    let ynab_account_id = get_required_arg("ynab_account_id");
-
-    // create both clients
-    let n26 = N26::new(n26_username, n26_password)?;
-    let ynab = YNAB {
-        token: ynab_token,
-        budget_id: ynab_budget_id,
-        account_id: ynab_account_id.clone(),
-    };
-
+    //
     // Validate that category_mapping_file file exists and that it is of JSON format
-    let category_mapping_file = get_required_arg("category_mapping_file");
-    let category_mapping_string =
-        read_to_string(category_mapping_file.to_string()).with_context(|_| {
-            ErrorKind::ArgParseCategoryMappingCanNotRead(category_mapping_file.clone())
+    //
+    println!("[1/9] Parsing --category-mapping-file");
+
+    if !PathBuf::from(cli.category_mapping_file.clone()).exists() {
+        Err(ErrorKind::ArgParseCategoryMappingCanNotRead(
+            cli.category_mapping_file.clone(),
+        ))?
+    }
+
+    let category_mapping_string = read_to_string(cli.category_mapping_file.to_string())
+        .with_context(|_| {
+            ErrorKind::ArgParseCategoryMappingCanNotRead(cli.category_mapping_file.clone())
         })?;
     let category_mapping_value: serde_json::Value =
-        serde_json::from_str(category_mapping_string.as_str()).with_context(|_| {
-            ErrorKind::ArgParseCategoryMappingCanNotParse(category_mapping_file.clone())
-        })?;
+        serde_json::from_str(category_mapping_string.as_str()).context(
+            ErrorKind::ArgParseCategoryMappingCanNotParse(cli.category_mapping_file.clone()),
+        )?;
 
     let category_mapping = match category_mapping_value.as_object() {
         Some(x) => x,
-        None => {
-            return Err(ynab_sync::Error::from(
-                ErrorKind::ArgParseCategoryMappingCanNotParse(category_mapping_file.clone()),
-            ))
-        }
+        None => Err(ErrorKind::ArgParseCategoryMappingCanNotParse(
+            cli.category_mapping_file.clone(),
+        ))?,
     };
-    println!("{:?}", category_mapping);
 
-    // Fetch n26 categories
-    let n26_categories = n26.get_categories()?;
-    println!("{:?}", n26_categories);
+    // YNAB client
+    let ynab = YNAB {
+        token: cli.ynab.token.clone(),
+    };
 
-    // TODO: verify that budget_id are correct account_id
+    // validate ynab cli options
+    ynab.validate_cli(cli.ynab.clone(), 1, 9)?;
 
-    // Fetch n26 categories
-    let ynab_transactions: HashMap<String, YNABTransaction> = HashMap::from_iter(
-        ynab.get_transactions()
-            .iter()
-            .filter(|x| x.import_id.is_some())
-            .map(|x| (x.import_id.clone().unwrap_or(String::from("")), x.clone()))
+    // Fetch YNAB categories
+    println!("[4/9] Fetching YNAB categories");
+    let ynab_categories = ynab.get_categories(cli.ynab.budget_id.clone())?;
+
+    // Fetch ynab transactions
+    println!(
+        "[5/9] Fetching YNAB transactions for the last {} days",
+        cli.days_to_sync
     );
+    let ynab_transactions = ynab.get_transactions(
+        cli.ynab.budget_id.clone(),
+        cli.ynab.account_id.clone(),
+        cli.days_to_sync.into(),
+    )?;
+
+    // N26 client
+    println!("[6/9] Fetching N26 token");
+    let n26 = N26::new(cli.n26.username.clone(), cli.n26.password.clone())?;
+
+    // Fetch n26 categories
+    println!("[7/9] Fetching N26 categories");
+    let n26_categories = n26.get_categories()?;
 
     let convert_transaction = |transaction: &N26Transaction| -> YNABTransaction {
-        // find category in category_mapping
-        let category = n26_categories
+        let category: Option<String> = n26_categories
+            // select category from transaction
             .get(&transaction.category)
+            // find category in category_mapping
             .and_then(|x| category_mapping.get(x))
             .and_then(|x| x.as_str())
-            .map(String::from);
+            .map(String::from)
+            // find id of the category
+            .and_then(|x| ynab_categories.get(&x))
+            .map(|x| x.clone().id);
 
         // when we can not figure out category we mark transaction as not approved
         let approved = category.is_some();
 
         // XXX: we can probably find more idiomatic way of doing this
         let memo = match &transaction.reference_text {
-            Some(reference_text) => Some(format!("{}", reference_text)),
+            Some(reference_text) => Some(reference_text.to_string()),
             None => match &transaction.merchant_name {
                 Some(merchant_name) => match &transaction.merchant_city {
                     Some(merchant_city) => Some(format!("{} {}", merchant_name, merchant_city)),
-                    None => Some(format!("{}", merchant_name)),
+                    None => Some(merchant_name.to_string()),
                 },
                 None => None,
             },
         };
 
         YNABTransaction {
-            account_id: ynab_account_id.to_string(),
+            account_id: cli.ynab.account_id.clone().to_string(),
             date: transaction.visible_ts.format("%Y-%m-%d").to_string(),
             amount: transaction.amount,
             // TODO: we would need to have payee_mapping
@@ -169,41 +140,21 @@ fn main() -> Result<()> {
         }
     };
 
+    println!("[8/9] Fetching N26 transaction and converting them to YNAB transactions");
     let transactions: Vec<YNABTransaction> = n26
-        .get_transactions(days_to_sync, 100000000)? // XXX: for now we set limit to 1mio
+        .get_transactions(cli.days_to_sync.into(), 100_000_000)? // XXX: for now we set limit to 1mio
         .into_iter()
         .map(|t| convert_transaction(&t))
         .collect();
 
-    // figure out which transactions are new and which we need to update
-    let mut new_transactions: Vec<YNABTransaction> = vec![];
-    let mut update_transactions: Vec<YNABTransaction> = vec![];
-    for transaction in transactions.iter() {
-        match transaction.import_id.clone() {
-            Some(import_id) => {
-                // filter out transactions that don't need to be updated
-                // that means if import_id matches amount and date should
-                // be the same as in n26 transaction
-                let ynab_transaction = ynab_transactions.get(&import_id);
-                if ynab_transaction.map(|x| x.amount) == Some(transaction.amount) &&
-                   ynab_transaction.map(|x| x.date.clone()) == Some(transaction.date.clone()) {
-                  continue;
-                }
-                if ynab_transactions.contains_key(import_id.as_str()) {
-                    update_transactions.push(transaction.clone());
-                } else {
-                    new_transactions.push(transaction.clone());
-                }
-            },
-            None => {},
-        };
-    }
-
-    println!("New transactions: {:?}", new_transactions.len());
-    println!("Transactions to update: {:?}", update_transactions.len());
-
-    // TODO: test on testing budget_id and account_id
-    //let new_transactions = ynab.save_transactions(transactions);
+    ynab.sync(
+        transactions,
+        ynab_transactions,
+        cli.ynab.budget_id.clone(),
+        cli.ynab.force_update,
+        8,
+        9,
+    )?;
 
     Ok(())
 }
