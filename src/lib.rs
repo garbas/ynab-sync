@@ -4,6 +4,7 @@ use std::fmt;
 use std::result;
 
 pub mod error;
+// TODO: pub mod rules;
 pub mod ingdiba;
 pub mod n26;
 pub mod ynab;

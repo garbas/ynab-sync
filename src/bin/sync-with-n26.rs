@@ -1,3 +1,4 @@
+use chrono::{NaiveDate, Utc};
 use clap_log_flag::Log;
 use clap_verbosity_flag::Verbosity;
 use failure::ResultExt;
@@ -20,29 +21,33 @@ struct Cli {
     #[structopt(flatten)]
     n26: N26Cli,
     #[structopt(
-        long = "category-mapping",
+        long = "n26-category-mapping",
         required = true,
         value_name = "FILE",
         help = "JSON file which represents the mapping between N26 and YNAB category."
     )]
     category_mapping_file: String,
     #[structopt(
-        long = "days-to-sync",
+        long = "sync-from",
         required = true,
-        value_name = "INT",
-        help = "Number of the past days that you want to sync from."
+        value_name = "YYYY-MM-DD",
+        help = "Date (including) when to sync from."
     )]
-    days_to_sync: i32,
+    sync_from: String,
 }
 
 fn main() -> Result<()> {
     let cli = Cli::from_args();
     cli.log.log_all(Some(cli.verbose.log_level()))?;
 
+    println!("[ 1/10] Parsing --sync-from");
+    let sync_from = NaiveDate::parse_from_str(&cli.sync_from, "%Y-%m-%d")?;
+    let days_to_sync = Utc::now().naive_utc().date().signed_duration_since(sync_from).num_days() + 1;
+
     //
     // Validate that category_mapping_file file exists and that it is of JSON format
     //
-    println!("[1/9] Parsing --category-mapping-file");
+    println!("[ 2/10] Parsing --category-mapping-file");
 
     if !PathBuf::from(cli.category_mapping_file.clone()).exists() {
         Err(ErrorKind::ArgParseCategoryMappingCanNotRead(
@@ -72,29 +77,29 @@ fn main() -> Result<()> {
     };
 
     // validate ynab cli options
-    ynab.validate_cli(cli.ynab.clone(), 1, 9)?;
+    ynab.validate_cli(cli.ynab.clone(), 2, 10)?;
 
     // Fetch YNAB categories
-    println!("[4/9] Fetching YNAB categories");
+    println!("[ 5/10] Fetching YNAB categories");
     let ynab_categories = ynab.get_categories(cli.ynab.budget_id.clone())?;
 
     // Fetch ynab transactions
     println!(
-        "[5/9] Fetching YNAB transactions for the last {} days",
-        cli.days_to_sync
+        "[ 6/10] Fetching YNAB transactions for the last {} days",
+        days_to_sync
     );
     let ynab_transactions = ynab.get_transactions(
         cli.ynab.budget_id.clone(),
         cli.ynab.account_id.clone(),
-        cli.days_to_sync.into(),
+        days_to_sync,
     )?;
 
     // N26 client
-    println!("[6/9] Fetching N26 token");
+    println!("[ 7/10] Fetching N26 token");
     let n26 = N26::new(cli.n26.username.clone(), cli.n26.password.clone())?;
 
     // Fetch n26 categories
-    println!("[7/9] Fetching N26 categories");
+    println!("[ 8/10] Fetching N26 categories");
     let n26_categories = n26.get_categories()?;
 
     let convert_transaction = |transaction: &N26Transaction| -> YNABTransaction {
@@ -140,9 +145,9 @@ fn main() -> Result<()> {
         }
     };
 
-    println!("[8/9] Fetching N26 transaction and converting them to YNAB transactions");
+    println!("[ 9/10] Fetching N26 transaction and converting them to YNAB transactions");
     let transactions: Vec<YNABTransaction> = n26
-        .get_transactions(cli.days_to_sync.into(), 100_000_000)? // XXX: for now we set limit to 1mio
+        .get_transactions(days_to_sync, 100_000_000)? // XXX: for now we set limit to 1mio
         .into_iter()
         .map(|t| convert_transaction(&t))
         .collect();
@@ -152,8 +157,8 @@ fn main() -> Result<()> {
         ynab_transactions,
         cli.ynab.budget_id.clone(),
         cli.ynab.force_update,
-        8,
         9,
+        10,
     )?;
 
     Ok(())

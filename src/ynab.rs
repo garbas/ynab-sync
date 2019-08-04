@@ -2,6 +2,8 @@ extern crate serde_str;
 
 use crate::{ErrorKind, Result};
 use chrono::{Duration, Utc};
+use crypto::digest::Digest;
+use crypto::sha1::Sha1;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::Select;
 use failure::ResultExt;
@@ -360,7 +362,7 @@ impl FromStr for TransactionFlagColor {
 impl YNAB {
     pub fn validate_cli(&self, cli: Cli, step: i32, steps: i32) -> Result<()> {
         // Fetch budgets and verify that budget_id is correct
-        println!("[{}/{}] Verifying --budget-id", step + 1, steps);
+        println!("[ {}/{}] Verifying --budget-id", step + 1, steps);
         if self
             .get_budgets()?
             .into_iter()
@@ -372,7 +374,7 @@ impl YNAB {
         }
 
         // Fetch accounts and verify that account_id is correct
-        println!("[{}/{}] Verifying --account-id", step + 2, steps);
+        println!("[ {}/{}] Verifying --account-id", step + 2, steps);
         if self
             .get_accounts(cli.budget_id.clone())?
             .into_iter()
@@ -505,7 +507,13 @@ impl YNAB {
                 .filter(|x| x.import_id.is_some())
                 .map(|x| {
                     (
-                        x.import_id.clone().unwrap_or_else(|| String::from("")),
+                        x.import_id.clone().unwrap_or_else(|| {
+                            let mut import_id_sha = Sha1::new();
+                            import_id_sha.input_str(&x.date);
+                            //import_id_sha.input_str(&format!("{}", x.amount));
+                            //import_id_sha.input_str(&x.memo.unwrap_or(""));
+                            import_id_sha.result_str()[..36].to_string()
+                        }),
                         x.clone(),
                     )
                 }),
@@ -551,11 +559,27 @@ impl YNAB {
         }
 
         if new_transactions.is_empty() && update_transactions.is_empty() {
-            println!("[{}/{}] No transactions to update.", step, steps);
+            println!("[ {}/{}] No transactions to update.", step, steps);
             return Ok(());
         }
 
         let selections = &["Yes", "No"];
+
+        if !new_transactions.is_empty() {
+            println!("New transactions:");
+            let width = new_transactions.iter().cloned().map(|x| x.memo.unwrap_or("".to_string()).len()).max().unwrap_or(0);
+            for transaction in &new_transactions {
+                println!(" - | {} | {:<width$} | {:>+10.2} EUR |", transaction.date, transaction.memo.clone().unwrap_or("".to_string()), (transaction.amount as f32 / 1000.0), width=width);
+            }
+        }
+        if !update_transactions.is_empty() {
+            println!("Transactions to update:");
+            let width = update_transactions.iter().cloned().map(|x| x.memo.unwrap_or("".to_string()).len()).max().unwrap_or(0);
+            for transaction in &update_transactions {
+                println!(" - | {} | {:<width$} | {:>+10.2} EUR |", transaction.date, transaction.memo.clone().unwrap_or("".to_string()), (transaction.amount as f32 / 1000.0), width=width);
+            }
+        }
+
         let prompt = format!(
             "[[{: >2}/10] ] Do you want to sync transactions with YNAB [{}/{}]?",
             step + 1,
@@ -613,6 +637,11 @@ impl YNAB {
             let http_error =
                 ErrorKind::YNABSaveTransactionsHttp(res.status().as_u16(), res_body.clone());
             Err(http_error)?;
+        } else {
+            let res_body = res
+                .text()
+                .context(ErrorKind::YNABSaveTransactions.clone())?;
+            println!("{}", res_body);
         }
 
         Ok(())
