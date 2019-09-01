@@ -6,8 +6,8 @@ in
 }:
 
 let
-  rustChannel = (pkgs.rustChannelOf { date = "2019-01-26"; channel = "nightly"; });
-  #rustPlatform = (builtins.getAttr rustChannel pkgs.latest.rustChannels);
+  #rustChannel = (pkgs.rustChannelOf { date = "2019-01-26"; channel = "nightly"; });
+  rustChannel = (builtins.getAttr "nightly" pkgs.latest.rustChannels);
 in
 pkgs.stdenv.mkDerivation {
   name = "ynap-sync";
