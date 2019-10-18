@@ -189,13 +189,11 @@ dependencies = [
 
 [[package]]
 name = "clap-verbosity-flag"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "env_logger 0.5.13 (registry+https://github.com/rust-lang/crates.io-index)",
- "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "structopt 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "structopt 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1897,7 +1895,7 @@ dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap-log-flag 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap-verbosity-flag 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap-verbosity-flag 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "console 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "csv 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "dialoguer 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1939,7 +1937,7 @@ dependencies = [
 "checksum chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)" = "e8493056968583b0193c1bb04d6f7684586f3726992d6c573261941a895dbd68"
 "checksum clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5067f5bb2d80ef5d68b4c87db81601f0b75bca627bc2ef76b141d7b846a3c6d9"
 "checksum clap-log-flag 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "935e3497eaa984678428ec289f9991c1857b3380c37cf9c3f5b5fbea7188cfba"
-"checksum clap-verbosity-flag 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bda14f5323b2b747f52908c5b7b8af7790784088bc7c2957a11695e39ad476dc"
+"checksum clap-verbosity-flag 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "177e9a28add9de161079047d67bcaab629bdfb542c6908f838bfc4cecb3d7f63"
 "checksum clicolors-control 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "90082ee5dcdd64dc4e9e0d37fbf3ee325419e39c0092191e0393df65518f741e"
 "checksum cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
 "checksum console 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "62828f51cfa18f8c31d3d55a43c6ce6af3f87f754cba9fbba7ff38089b9f5612"
