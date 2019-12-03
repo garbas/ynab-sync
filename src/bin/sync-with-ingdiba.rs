@@ -1,5 +1,3 @@
-use clap_log_flag::Log;
-use clap_verbosity_flag::Verbosity;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use failure::ResultExt;
@@ -18,10 +16,6 @@ use ynab_sync::ynab::{
 
 #[derive(StructOpt, Debug)]
 struct Cli {
-    #[structopt(flatten)]
-    verbose: Verbosity,
-    #[structopt(flatten)]
-    log: Log,
     #[structopt(flatten)]
     ynab: YNABCli,
     #[structopt(
@@ -96,7 +90,6 @@ impl FromStr for TransactionField {
 
 fn main() -> Result<()> {
     let cli = Cli::from_args();
-    cli.log.log_all(Some(cli.verbose.log_level()))?;
 
     // check if --category-rules file exists and that it is of JSON format
     if !PathBuf::from(cli.category_rules_file.clone()).exists() {

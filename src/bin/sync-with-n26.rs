@@ -1,21 +1,19 @@
 use chrono::{NaiveDate, Utc};
-use clap_log_flag::Log;
-use clap_verbosity_flag::Verbosity;
+use clap_verbosity_flag;
 use failure::ResultExt;
 use serde_json;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use ynab_sync::n26::{Cli as N26Cli, Transaction as N26Transaction};
-use ynab_sync::ynab::{Cli as YNABCli, Transaction as YNABTransaction, TransactionCleared};
-use ynab_sync::{ErrorKind, Result, N26, YNAB};
+use ynab_sync::error::{ErrorKind, Result};
+use ynab_sync::logging::setup_logging;
+use ynab_sync::n26::{Cli as N26Cli, Transaction as N26Transaction, N26};
+use ynab_sync::ynab::{Cli as YNABCli, Transaction as YNABTransaction, TransactionCleared, YNAB};
 
-#[derive(StructOpt, Debug)]
+#[derive(Debug, StructOpt)]
 struct Cli {
     #[structopt(flatten)]
-    verbose: Verbosity,
-    #[structopt(flatten)]
-    log: Log,
+    verbose: clap_verbosity_flag::Verbosity,
     #[structopt(flatten)]
     ynab: YNABCli,
     #[structopt(flatten)]
@@ -38,11 +36,18 @@ struct Cli {
 
 fn main() -> Result<()> {
     let cli = Cli::from_args();
-    cli.log.log_all(Some(cli.verbose.log_level()))?;
+    let app = Cli::clap();
+
+    setup_logging(app.get_name().to_string(), cli.verbose.log_level())?;
 
     println!("[ 1/10] Parsing --sync-from");
     let sync_from = NaiveDate::parse_from_str(&cli.sync_from, "%Y-%m-%d")?;
-    let days_to_sync = Utc::now().naive_utc().date().signed_duration_since(sync_from).num_days() + 1;
+    let days_to_sync = Utc::now()
+        .naive_utc()
+        .date()
+        .signed_duration_since(sync_from)
+        .num_days()
+        + 1;
 
     //
     // Validate that category_mapping_file file exists and that it is of JSON format

@@ -17,6 +17,15 @@ pub type Result<T> = result::Result<T, ExitFailure>;
 
 #[derive(Debug, Fail, PartialEq, Clone)]
 pub enum ErrorKind {
+    #[fail(display = "failed to setup logging")]
+    LoggingSetupFailed,
+
+    #[fail(display = "failed to retrieve current directory")]
+    CurrentDir,
+
+    #[fail(display = "failed to write to token file")]
+    N26WritingToTokenFile,
+
     #[fail(display = "failed to parse option {}", _0)]
     ArgParse(String),
 
@@ -110,6 +119,33 @@ pub enum ErrorKind {
     #[fail(display = "failed to save transactions to YNAB: {} {}", _0, _1)]
     YNABSaveTransactionsHttp(u16, String),
 
+    #[fail(display = "failed to open N26 token data file")]
+    N26TokenDataFileCanNotRead,
+
+    #[fail(display = "failed to parse N26 token data file")]
+    N26TokenDataFileCanNotParse,
+
+    #[fail(display = "failed to authenticate against N26")]
+    N26AuthenticateNew,
+
+    #[fail(display = "failed to parse mfa token request to N26: {}", _0)]
+    N26AuthenticateNewParse(String),
+
+    #[fail(display = "failed to request MFA approval to N26")]
+    N26AuthenticateMfaApproval,
+
+    #[fail(display = "failed to complete MFA approval to N26")]
+    N26AuthenticateCompleteMFA,
+
+    #[fail(display = "failed to parse MFA approval to N26: {}", _0)]
+    N26AuthenticateCompleteMFAParse(String),
+
+    #[fail(display = "failed to authenticate against N26 when trying to refresh a token")]
+    N26AuthenticateRefreshToken,
+
+    #[fail(display = "failed to parse refresh token from N26: {}", _0)]
+    N26AuthenticateRefreshTokenParse(String),
+
     #[fail(display = "failed to authenticate against N26")]
     N26Authenticate,
 
@@ -154,7 +190,7 @@ impl Fail for Error {
         self.inner.name()
     }
 
-    fn cause(&self) -> Option<&Fail> {
+    fn cause(&self) -> Option<&dyn Fail> {
         self.inner.cause()
     }
 

@@ -4,9 +4,10 @@ use std::fmt;
 use std::result;
 
 pub mod error;
-// TODO: pub mod rules;
 pub mod ingdiba;
+pub mod logging;
 pub mod n26;
+// TODO: pub mod rules;
 pub mod ynab;
 
 pub use error::{Error, ErrorKind, Result};

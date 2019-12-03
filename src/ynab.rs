@@ -567,16 +567,38 @@ impl YNAB {
 
         if !new_transactions.is_empty() {
             println!("New transactions:");
-            let width = new_transactions.iter().cloned().map(|x| x.memo.unwrap_or("".to_string()).len()).max().unwrap_or(0);
+            let width = new_transactions
+                .iter()
+                .cloned()
+                .map(|x| x.memo.unwrap_or("".to_string()).len())
+                .max()
+                .unwrap_or(0);
             for transaction in &new_transactions {
-                println!(" - | {} | {:<width$} | {:>+10.2} EUR |", transaction.date, transaction.memo.clone().unwrap_or("".to_string()), (transaction.amount as f32 / 1000.0), width=width);
+                println!(
+                    " - | {} | {:<width$} | {:>+10.2} EUR |",
+                    transaction.date,
+                    transaction.memo.clone().unwrap_or("".to_string()),
+                    (transaction.amount as f32 / 1000.0),
+                    width = width
+                );
             }
         }
         if !update_transactions.is_empty() {
             println!("Transactions to update:");
-            let width = update_transactions.iter().cloned().map(|x| x.memo.unwrap_or("".to_string()).len()).max().unwrap_or(0);
+            let width = update_transactions
+                .iter()
+                .cloned()
+                .map(|x| x.memo.unwrap_or("".to_string()).len())
+                .max()
+                .unwrap_or(0);
             for transaction in &update_transactions {
-                println!(" - | {} | {:<width$} | {:>+10.2} EUR |", transaction.date, transaction.memo.clone().unwrap_or("".to_string()), (transaction.amount as f32 / 1000.0), width=width);
+                println!(
+                    " - | {} | {:<width$} | {:>+10.2} EUR |",
+                    transaction.date,
+                    transaction.memo.clone().unwrap_or("".to_string()),
+                    (transaction.amount as f32 / 1000.0),
+                    width = width
+                );
             }
         }
 
