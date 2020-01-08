@@ -14,7 +14,7 @@ chrono = { version = "0.4.9", features = ["serde"] }
 clap = "2.33.0"
 clap-verbosity-flag = "0.3.0"
 console = "0.9.1"
-csv = "1.1.1"
+csv = "1.1.2"
 dialoguer = "0.5.0"
 dirs = "2.0.2"
 encoding_rs = "0.8.20"
