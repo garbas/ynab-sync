@@ -3,7 +3,7 @@ use fern;
 use log::Level;
 use std::io;
 
-pub fn setup_logging(for_crate: String, log_level: Option<Level>) -> Result<()> {
+pub fn setup_logging(_for_crate: String, log_level: Option<Level>) -> Result<()> {
     let log_level_filter = log_level.unwrap_or(Level::Trace).to_level_filter();
 
     let logging = fern::Dispatch::new()
