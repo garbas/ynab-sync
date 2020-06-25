@@ -22,8 +22,7 @@ in naersk.buildPackage {
     rustPackages.rustfmt
 
     cargo-graph
-    # TODO: fails to build
-    #cargo-edit
+    cargo-edit
     cargo-release
 
     ag

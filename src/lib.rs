@@ -86,3 +86,30 @@ where
 
     deserializer.deserialize_str(StrVisitor)
 }
+
+fn max_200_chars<'de, D>(deserializer: D) -> result::Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct StrVisitor;
+
+    impl<'de> Visitor<'de> for StrVisitor {
+        type Value = String;
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a short (200 chars) of memo")
+        }
+        fn visit_str<E>(self, s: &str) -> result::Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            if s.len() > 149 {
+                let ss = &s[0..149];
+                Ok(ss.to_string())
+            } else {
+                Ok(s.to_string())
+            }
+        }
+    }
+
+    deserializer.deserialize_str(StrVisitor)
+}

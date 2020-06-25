@@ -1,4 +1,4 @@
-use crate::{convert_to_int_eu_style, convert_to_local_date};
+use crate::{convert_to_int_eu_style, convert_to_local_date, max_200_chars};
 use crate::{ErrorKind, Result};
 use chrono::{NaiveDate, Utc};
 use csv::ReaderBuilder;
@@ -18,6 +18,7 @@ pub struct Transaction {
     pub entity: String,
     #[serde(rename = "type")]
     pub type_: String,
+    #[serde(deserialize_with = "max_200_chars")]
     pub memo: String,
     #[serde(deserialize_with = "convert_to_int_eu_style")]
     pub balance: i32,
